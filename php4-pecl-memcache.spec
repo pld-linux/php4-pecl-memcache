@@ -1,24 +1,24 @@
 %define		_modname	memcache
 %define		_status		stable
+%define		_sysconfdir	/etc/php4
+%define		extensionsdir	%{_libdir}/php4
 
 Summary:	%{_modname} - a memcached extension
 Summary(pl):	%{_modname} - rozszerzenie memcached
 Name:		php4-pecl-%{_modname}
 Version:	1.5
-Release:	1
+Release:	2
 License:	PHP 2.02
 Group:		Development/Languages/PHP
 Source0:	http://pecl.php.net/get/%{_modname}-%{version}.tgz
 # Source0-md5:	f521dd4d3cad4ccb05d9ade4e1cc04d4
 URL:		http://pecl.php.net/package/memcached/
-BuildRequires:	libtool
 BuildRequires:	php4-devel >= 3:4.3.3
-Requires:	php4-common >= 3:4.3.3
+BuildRequires:	rpmbuild(macros) >= 1.230
+%requires_eq_to php4-common php4-devel
+Requires:	%{_sysconfdir}/conf.d
 Obsoletes:	php4-pear-%{_modname}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-%define		_sysconfdir	/etc/php4
-%define		extensionsdir	%{_libdir}/php4
 
 %description
 Memcached is a caching daemon designed especially for dynamic web
@@ -51,22 +51,29 @@ phpize
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{extensionsdir}
+install -d $RPM_BUILD_ROOT{%{_sysconfdir}/conf.d,%{extensionsdir}}
 
 install %{_modname}-%{version}/modules/%{_modname}.so $RPM_BUILD_ROOT%{extensionsdir}
+cat <<'EOF' > $RPM_BUILD_ROOT%{_sysconfdir}/conf.d/%{_modname}.ini
+; Enable %{_modname} extension module
+extension=%{_modname}.so
+EOF
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-%{_sbindir}/php4-module-install install %{_modname} %{_sysconfdir}/php-cgi.ini
+[ ! -f /etc/apache/conf.d/??_mod_php4.conf ] || %service -q apache restart
+[ ! -f /etc/httpd/httpd.conf/??_mod_php4.conf ] || %service -q httpd restart
 
-%preun
-if [ "$1" = "0" ]; then
-	%{_sbindir}/php4-module-install remove %{_modname} %{_sysconfdir}/php-cgi.ini
+%postun
+if [ "$1" = 0 ]; then
+	[ ! -f /etc/apache/conf.d/??_mod_php4.conf ] || %service -q apache restart
+	[ ! -f /etc/httpd/httpd.conf/??_mod_php4.conf ] || %service -q httpd restart
 fi
 
 %files
 %defattr(644,root,root,755)
 %doc %{_modname}-%{version}/{CREDITS,README}
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/conf.d/%{_modname}.ini
 %attr(755,root,root) %{extensionsdir}/%{_modname}.so
