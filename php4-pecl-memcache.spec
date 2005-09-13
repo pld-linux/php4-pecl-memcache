@@ -14,8 +14,8 @@ Source0:	http://pecl.php.net/get/%{_modname}-%{version}.tgz
 # Source0-md5:	f521dd4d3cad4ccb05d9ade4e1cc04d4
 URL:		http://pecl.php.net/package/memcached/
 BuildRequires:	php4-devel >= 3:4.3.3
-BuildRequires:	rpmbuild(macros) >= 1.230
-%requires_eq_to php4-common php4-devel
+BuildRequires:	rpmbuild(macros) >= 1.238
+%requires_php_extension
 Requires:	%{_sysconfdir}/conf.d
 Obsoletes:	php4-pear-%{_modname}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
