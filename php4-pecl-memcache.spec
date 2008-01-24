@@ -2,7 +2,6 @@
 %define		_status		stable
 %define		_sysconfdir	/etc/php4
 %define		extensionsdir	%{_libdir}/php4
-
 Summary:	%{_modname} - a memcached extension
 Summary(pl.UTF-8):	%{_modname} - rozszerzenie memcached
 Name:		php4-pecl-%{_modname}
@@ -14,9 +13,9 @@ Source0:	http://pecl.php.net/get/%{_modname}-%{version}.tgz
 # Source0-md5:	f521dd4d3cad4ccb05d9ade4e1cc04d4
 URL:		http://pecl.php.net/package/memcached/
 BuildRequires:	php4-devel >= 3:4.3.3
-BuildRequires:	rpmbuild(macros) >= 1.322
+BuildRequires:	rpmbuild(macros) >= 1.344
+Requires:	php4-common >= 3:4.4.0-3
 %{?requires_php_extension}
-Requires:	%{_sysconfdir}/conf.d
 Obsoletes:	php4-pear-%{_modname}
 Conflicts:	php4-mcache
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -64,13 +63,11 @@ EOF
 rm -rf $RPM_BUILD_ROOT
 
 %post
-[ ! -f /etc/apache/conf.d/??_mod_php4.conf ] || %service -q apache restart
-[ ! -f /etc/httpd/httpd.conf/??_mod_php4.conf ] || %service -q httpd restart
+%php4_webserver_restart
 
 %postun
 if [ "$1" = 0 ]; then
-	[ ! -f /etc/apache/conf.d/??_mod_php4.conf ] || %service -q apache restart
-	[ ! -f /etc/httpd/httpd.conf/??_mod_php4.conf ] || %service -q httpd restart
+	%php4_webserver_restart
 fi
 
 %files
